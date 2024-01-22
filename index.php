@@ -17,7 +17,7 @@
         malicious_function();
     </script>
 
-    <a href="https://www.youtube.com/watch?v=ZAy2ANUXsZQ">Click me </a>
+    <a href="https://www.youtube.com/watch?v=JuYeHPFR3f0">Click me </a>
 
     <?php
         echo '<?php echo "Infekcja"; ?>';
