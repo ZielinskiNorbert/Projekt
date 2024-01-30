@@ -1,70 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strona próbna</title>
-</head>
-<body>
 
-    <h1>Strona Próbna</h1>
+from bs4 import BeautifulSoup
+import requests
+import re
 
-    <script>
-        function malicious_function() {
-            alert("Zainfekowane!");
-        }
-        malicious_function();
-    </script>
+def fetch_page_content(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.text
+    except requests.RequestException as e:
+        print(f"Error fetching {url}: {e}")
+        return None
 
-    <a href="https://www.youtube.com/watch?v=JuYeHPFR3f0">Click me </a>
+def find_line_number(html_content, position):
+    return html_content.count('\n', 0, position) + 1
 
-    <?php
-        echo '<?php echo "Infekcja"; ?>';
-    ?>
+def detect_modifications(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    
+    for i, script in enumerate(soup.find_all('script'), start=1):
+        if "malicious_function" in script.get_text():
+            print(f"Malicious script detected on line {i}: {script.get_text()}")
 
-    <a href="https://eportal.pwr.edu.pl/">Click me 2</a>
+    #Sprawdzanie potencjalnej zmiany XSS
+    xss_pattern = r'<script.*?>.*?</script>'
+    for match in re.finditer(xss_pattern, html_content, re.IGNORECASE):
+        line_number = find_line_number(html_content, match.start())
+        print(f"Potential XSS attack detected on line {line_number}: {match.group()}")
 
-    <script>
-        alert("XSS atakuje");
-    </script>
+    #Sprawdzanie potencjalnej zmiany PHP
+    php_patterns = [
+        r'<\?php.*malicious_code.*\?>', 
+        r'<\?php.*echo.*\?>' 
+    ]
+    for pattern in php_patterns:
+        malicious_php_code = re.compile(pattern, re.DOTALL)
+        for match in malicious_php_code.finditer(html_content):
+            line_number = find_line_number(html_content, match.start())
+            print(f"Possible malicious PHP code detected on line {line_number}: {match.group()}")
 
-    <h1>Komentarze</h1>
+    #Sprawdzanie potencjalnych linków
+    malicious_link_patterns = [
+        r'https?://[^/]*malicious_site',
+        r'https?://[^/]*'
+    ]
+    for pattern in malicious_link_patterns:
+        malicious_link = re.compile(pattern)
+        for match in malicious_link.finditer(html_content):
+            line_number = find_line_number(html_content, match.start())
+            print(f"Possible malicious link detected on line {line_number}: {match.group()}")
 
-    <form action="#" method="post">
-        <label for="comment">Wprowadź komentarz:</label>
-        <textarea id="comment" name="comment" rows="4" cols="50"></textarea>
-        <br>
-        <input type="submit" value="Dodaj komentarz">
-    </form>
+if __name__ == "__main__":
+    url = input("Podaj URL Storny: ")
+    page_content = fetch_page_content(url)
 
-    <?php
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        if(isset($_POST['comment']) && !empty($_POST['comment'])) {
-            $comment = $_POST['comment']; 
-
-
-            $file = 'komentarze.txt';
-            file_put_contents($file, $comment . PHP_EOL, FILE_APPEND);
-
-            echo "<p><strong>Komentarz:</strong> $comment</p>";
-        } else {
-            echo "<p><strong>Błąd:</strong> Komentarz nie może być pusty.</p>";
-        }
-    }
-    ?>
-
-    <h2>Historia Komentarzy</h2>
-
-    <?php
-    $file = 'komentarze.txt';
-    if (file_exists($file)) {
-        $comments = file($file, FILE_IGNORE_NEW_LINES);
-        foreach ($comments as $comment) {
-            echo "<p><strong>Komentarz:</strong> $comment</p>";
-        }
-    }
-    ?>
-
-</body>
-</html>
+    if page_content:
+        detect_modifications(page_content)
+    else:
+        print("Failed to retrieve page content.")
