@@ -51,4 +51,4 @@ if __name__ == "__main__":
     url = input("Podaj adres URL strony: ")
     comment = input("Podaj komentarz: ")
     submit_comment(url, comment)
-#przykładowy skrypt: <script>alert('XSS');</script>
+#przykładowy skrypt: <script>alert('XSS');</script>, <marquee onstart=alert(1)>XSS</marquee></p>
