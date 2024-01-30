@@ -51,7 +51,7 @@ def detect_modifications(html_content):
             print(f"Possible malicious link detected on line {line_number}: {match.group()}")
 
 if __name__ == "__main__":
-    url = "http://localhost/"
+    url = input("Podaj URL Storny: ")
     page_content = fetch_page_content(url)
 
     if page_content:
