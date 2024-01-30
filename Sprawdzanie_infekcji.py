@@ -16,15 +16,19 @@ def find_line_number(html_content, position):
     return html_content.count('\n', 0, position) + 1
 
 def detect_modifications(html_content):
-    soup = BeautifulSoup(html_content, 'html.parser')
-    
-    for i, script in enumerate(soup.find_all('script'), start=1):
-        if "malicious_function" in script.get_text():
-            print(f"Malicious script detected on line {i}: {script.get_text()}")
 
     #Sprawdzanie potencjalnej zmiany XSS
-    xss_pattern = r'<script.*?>.*?</script>'
-    for match in re.finditer(xss_pattern, html_content, re.IGNORECASE):
+    xss_pattern = [
+    r'<script.*?>.*?</script>',
+    r'<body\s+onload=.*?>',
+    r'<b\s+onmouseover=.*?>',
+    r'<body\s+onbeforeprint=.*?>',
+    r'<details\s+ontoggle=.*?>.*?</details>',
+    r'<marquee\s+onstart=.*?>.*?</marquee>']
+
+    xss_pattern_combined = '|'.join(xss_pattern)
+
+    for match in re.finditer(xss_pattern_combined, html_content, re.IGNORECASE):
         line_number = find_line_number(html_content, match.start())
         print(f"Potential XSS attack detected on line {line_number}: {match.group()}")
 
