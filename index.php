@@ -10,13 +10,6 @@
 
     <h1>Strona Próbna</h1>
 
-    <script>
-        function malicious_function() {
-            alert("Zainfekowane!");
-        }
-        malicious_function();
-    </script>
-
     <a href="https://www.youtube.com/watch?v=JuYeHPFR3f0">Click me </a>
 
     <?php
